@@ -3,6 +3,10 @@ extends Node2D
 
 @export var level_scene: PackedScene
 
+@onready var camera: Camera2D = $Camera
+
 
 func _ready() -> void:
-	add_child(level_scene.instantiate())
+	var board: TileMapLayer = level_scene.instantiate()
+	add_child(board)
+	camera.fit_to_board(board)

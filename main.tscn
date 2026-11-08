@@ -2,7 +2,11 @@
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://level_01.tscn" id="2_level"]
+[ext_resource type="Script" path="res://camera.gd" id="3_camera"]
 
 [node name="Main" type="Node2D" unique_id=934658640]
 script = ExtResource("1_main")
 level_scene = ExtResource("2_level")
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")
