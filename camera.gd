@@ -15,10 +15,13 @@ const EDGE_DEVICE := 1000
 var _bounds := Rect2()
 var _has_bounds := false
 var _edge_pressed := {}
+# Bis zur ersten echten Mausbewegung meldet Godot (0, 0) als Mausposition,
+# was sonst wie "Maus in der oberen linken Ecke" wirkt.
+var _mouse_seen := false
 
 
-## Begrenzt die Kamera auf das gemalte Spielfeld und zentriert sie darauf.
-func fit_to_board(board: TileMapLayer) -> void:
+## Begrenzt die Kamera auf das gemalte Spielfeld und richtet sie auf focus_cell aus.
+func fit_to_board(board: TileMapLayer, focus_cell: Vector2i) -> void:
 	var cells := board.get_used_cells()
 	if cells.is_empty():
 		return
@@ -28,7 +31,7 @@ func fit_to_board(board: TileMapLayer) -> void:
 	var half_tile := Vector2(board.tile_set.tile_size) / 2 + Vector2.ONE * border_margin
 	_bounds = rect.grow_individual(half_tile.x, half_tile.y, half_tile.x, half_tile.y)
 	_has_bounds = true
-	position = _bounds.get_center()
+	position = board.to_global(board.map_to_local(focus_cell))
 	_clamp_to_bounds()
 	reset_smoothing()
 
@@ -40,10 +43,16 @@ func _process(delta: float) -> void:
 	_clamp_to_bounds()
 
 
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		_mouse_seen = true
+
+
 func _update_edge_actions() -> void:
 	var view_size := get_viewport_rect().size
 	var mouse := get_viewport().get_mouse_position()
-	var inside := Rect2(Vector2.ZERO, view_size).has_point(mouse) and DisplayServer.window_is_focused()
+	var inside := _mouse_seen and Rect2(Vector2.ZERO, view_size).has_point(mouse) \
+			and DisplayServer.window_is_focused()
 	var wanted := {
 		"camera_left": inside and mouse.x < edge_margin,
 		"camera_right": inside and mouse.x > view_size.x - edge_margin,

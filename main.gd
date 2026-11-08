@@ -9,4 +9,4 @@ extends Node2D
 func _ready() -> void:
 	var board: TileMapLayer = level_scene.instantiate()
 	add_child(board)
-	camera.fit_to_board(board)
+	camera.fit_to_board(board, board.start_cell)

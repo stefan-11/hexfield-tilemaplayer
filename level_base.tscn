@@ -1,10 +1,12 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://d3rsxa5s3q4is"]
 
 [ext_resource type="TileSet" uid="uid://icjolmgce0t8" path="res://hex_tileset.tres" id="1_tileset"]
+[ext_resource type="Script" uid="uid://bdrucby46p3ou" path="res://level.gd" id="2_646pq"]
 [ext_resource type="Script" uid="uid://dbtsogq1dt2kw" path="res://hover_highlight.gd" id="2_hover"]
 
-[node name="Board" type="TileMapLayer"]
+[node name="Board" type="TileMapLayer" unique_id=1759718934]
 tile_set = ExtResource("1_tileset")
+script = ExtResource("2_646pq")
 
-[node name="Hover" type="TileMapLayer" parent="."]
+[node name="Hover" type="TileMapLayer" parent="." unique_id=1908978758]
 script = ExtResource("2_hover")

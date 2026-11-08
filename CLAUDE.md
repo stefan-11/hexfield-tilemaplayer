@@ -28,12 +28,12 @@ Configured in `hex_tileset.tres`, shared by all layers:
 
 ## Scene structure
 
-- `level_base.tscn`: `Board (TileMapLayer, hex_tileset.tres)` → `Hover (TileMapLayer, hover_highlight.gd)`. Contains no painted cells.
-- `level_XX.tscn`: inherited scenes of `level_base.tscn`; they only add `tile_map_data` (the painted level). Shared structure/overlays belong in `level_base.tscn`, never in individual levels.
+- `level_base.tscn`: `Board (TileMapLayer, level.gd, hex_tileset.tres)` → `Hover (TileMapLayer, hover_highlight.gd)`. Contains no painted cells.
+- `level_XX.tscn`: inherited scenes of `level_base.tscn`; they only add `tile_map_data` (the painted level) and per-level exports of `level.gd` (e.g. `start_cell`, axial coords the camera starts on). Shared structure/overlays belong in `level_base.tscn`, never in individual levels.
 - `main.tscn` + `main.gd`: `Main (Node2D)` instantiates the `PackedScene` set in its `level_scene` export at runtime and calls `Camera.fit_to_board(board)`.
 
 ## Camera / input
 
-`camera.gd` (on `Main/Camera`) moves only via the input actions `camera_left/right/up/down` (defined in `project.godot`, arrow keys) and clamps to the painted board's bounds. Mouse edge-scrolling does not move the camera directly: it emits `InputEventAction`s with a dedicated `device` id (`EDGE_DEVICE`). Don't switch this to `Input.action_press/action_release` — `action_release` also cancels a held arrow key for the same action.
+`camera.gd` (on `Main/Camera`) moves only via the input actions `camera_left/right/up/down` (defined in `project.godot`, arrow keys) and clamps to the painted board's bounds. Mouse edge-scrolling does not move the camera directly: it emits `InputEventAction`s with a dedicated `device` id (`EDGE_DEVICE`). Don't switch this to `Input.action_press/action_release` — `action_release` also cancels a held arrow key for the same action. Edge-scrolling stays off until the first `InputEventMouseMotion`, because Godot reports the mouse at `(0, 0)` before that (would scroll to the top-left on startup).
 
 Overlay pattern: extra visual layers (hover, selection, movement range, …) are `TileMapLayer` children of `Board`. They inherit its transform, draw on top, copy `board.tile_set` in `_ready`, and tint via `modulate`. `Board` itself only holds level data; overlays only mark cells that exist on `Board` (`get_cell_source_id(cell) != -1`).
