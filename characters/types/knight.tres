@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterType" format=3]
+
+[ext_resource type="Script" uid="uid://0g0vf1km75qg" path="res://characters/character_type.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://demr332qripey" path="res://characters/player.excalidraw.png" id="2_texture"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Ritter"
+texture = ExtResource("2_texture")
+max_hp = 12
+move_range = 3

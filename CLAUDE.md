@@ -28,9 +28,16 @@ Configured in `hex_tileset.tres`, shared by all layers:
 
 ## Scene structure
 
-- `level_base.tscn`: `Board (TileMapLayer, level.gd, hex_tileset.tres)` → `Hover (TileMapLayer, hover_highlight.gd)`. Contains no painted cells.
+- `level_base.tscn`: `Board (TileMapLayer, level.gd, hex_tileset.tres)` → `Hover (TileMapLayer, hover_highlight.gd)`, `Units (Node2D)`. Contains no painted cells.
 - `level_XX.tscn`: inherited scenes of `level_base.tscn`; they only add `tile_map_data` (the painted level) and per-level exports of `level.gd` (e.g. `start_cell`, axial coords the camera starts on). Shared structure/overlays belong in `level_base.tscn`, never in individual levels.
 - `main.tscn` + `main.gd`: `Main (Node2D)` instantiates the `PackedScene` set in its `level_scene` export at runtime and calls `Camera.fit_to_board(board)`.
+
+## Characters (`characters/`)
+
+- One scene for all units: `character.tscn` + `character.gd` (`class_name Character`, `@tool`). Player vs. enemy is the `team` export, not a subclass; control (input vs. AI) belongs in a separate turn/controller system.
+- Stats and graphics live in `CharacterType` resources (`character_type.gd`), one `.tres` per type in `characters/types/`. New unit types = new `.tres`, no new scene.
+- Units are instanced per level under `Board/Units`. `cell` (axial) is the source of truth; position is derived from it. In the editor, dragging a unit snaps it to the nearest hex and updates `cell`.
+- `level.gd` keeps the `cell → Character` lookup (`get_unit_at`, `move_unit`). Always move units through `move_unit`, not by setting `cell` directly, or the lookup goes stale.
 
 ## Camera / input
 
