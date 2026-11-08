@@ -1,13 +1,8 @@
 [gd_scene format=4 uid="uid://b8mni2ljx2pg4"]
 
-[ext_resource type="TileSet" uid="uid://icjolmgce0t8" path="res://hex_tileset.tres" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://dbtsogq1dt2kw" path="res://hover_highlight.gd" id="2_0xm2m"]
+[ext_resource type="Script" path="res://main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://level_01.tscn" id="2_level"]
 
 [node name="Main" type="Node2D" unique_id=934658640]
-
-[node name="Board" type="TileMapLayer" parent="." unique_id=1618991127]
-tile_map_data = PackedByteArray("AAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAACAAAAAAAAAAAAAAACAP//AAAAAAAAAAADAP//AAAAAAAAAAAAAAEAAAAAAAAAAAABAAEAAAAAAAAAAAACAAEAAAAAAAAAAAA=")
-tile_set = ExtResource("1_ig7tw")
-
-[node name="Hover" type="TileMapLayer" parent="Board" unique_id=1240896559]
-script = ExtResource("2_0xm2m")
+script = ExtResource("1_main")
+level_scene = ExtResource("2_level")
