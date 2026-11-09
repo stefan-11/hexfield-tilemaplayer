@@ -3,6 +3,10 @@
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://level_01.tscn" id="2_level"]
 [ext_resource type="Script" path="res://camera.gd" id="3_camera"]
+[ext_resource type="Script" path="res://turns/turn_manager.gd" id="4_turn_manager"]
+[ext_resource type="Script" path="res://turns/player_controller.gd" id="5_player"]
+[ext_resource type="Script" path="res://turns/enemy_controller.gd" id="6_enemy"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="7_hud"]
 
 [node name="Main" type="Node2D" unique_id=934658640]
 script = ExtResource("1_main")
@@ -10,3 +14,17 @@ level_scene = ExtResource("2_level")
 
 [node name="Camera" type="Camera2D" parent="."]
 script = ExtResource("3_camera")
+
+[node name="TurnManager" type="Node" parent="."]
+script = ExtResource("4_turn_manager")
+
+[node name="PlayerController" type="Node" parent="." node_paths=PackedStringArray("turn_manager")]
+script = ExtResource("5_player")
+turn_manager = NodePath("../TurnManager")
+
+[node name="EnemyController" type="Node" parent="." node_paths=PackedStringArray("turn_manager")]
+script = ExtResource("6_enemy")
+turn_manager = NodePath("../TurnManager")
+
+[node name="HUD" parent="." node_paths=PackedStringArray("turn_manager") instance=ExtResource("7_hud")]
+turn_manager = NodePath("../TurnManager")

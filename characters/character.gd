@@ -20,6 +20,8 @@ enum Team { PLAYER, ENEMY }
 		_snap_to_cell()
 
 var hp := 0
+## Felder, die die Figur in dieser Runde noch laufen darf.
+var moves_left := 0
 
 
 func _ready() -> void:
@@ -37,6 +39,11 @@ func _notification(what: int) -> void:
 		var board := get_board()
 		if board:
 			cell = board.local_to_map(board.to_local(global_position))
+
+
+## Wird zu Beginn jeder Runde aufgerufen.
+func reset_moves() -> void:
+	moves_left = type.move_range if type else 0
 
 
 func _get_configuration_warnings() -> PackedStringArray:

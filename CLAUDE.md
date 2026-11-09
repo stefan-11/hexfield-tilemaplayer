@@ -28,9 +28,11 @@ Configured in `hex_tileset.tres`, shared by all layers:
 
 ## Scene structure
 
-- `level_base.tscn`: `Board (TileMapLayer, level.gd, hex_tileset.tres)` → `Hover (TileMapLayer, hover_highlight.gd)`, `Units (Node2D)`. Contains no painted cells.
-- `level_XX.tscn`: inherited scenes of `level_base.tscn`; they only add `tile_map_data` (the painted level) and per-level exports of `level.gd` (e.g. `start_cell`, axial coords the camera starts on). Shared structure/overlays belong in `level_base.tscn`, never in individual levels.
-- `main.tscn` + `main.gd`: `Main (Node2D)` instantiates the `PackedScene` set in its `level_scene` export at runtime and calls `Camera.fit_to_board(board)`.
+- `level_base.tscn`: `Board (TileMapLayer, level.gd = class_name Board, hex_tileset.tres)` → `Reach (highlight_layer.gd)`, `Hover (hover_highlight.gd)`, `Units (Node2D)`. Contains no painted cells. Child order = draw order.
+- `level_XX.tscn`: inherited scenes of `level_base.tscn`; they only add `tile_map_data` (the painted level), units, and per-level exports of `level.gd` (e.g. `start_cell`, axial coords the camera starts on). Shared structure/overlays belong in `level_base.tscn`, never in individual levels.
+- `main.tscn` + `main.gd`: `Main (Node2D)` holds `Camera`, `TurnManager`, `PlayerController`, `EnemyController`, `HUD` (`ui/hud.tscn`). At runtime it instantiates the `level_scene` export, hands the `Board` to camera/turn manager/player controller, then calls `TurnManager.start()`.
+
+Overlay pattern: extra visual layers (hover, selection, movement range, …) are `TileMapLayer` children of `Board`. They inherit its transform, draw on top, copy `board.tile_set` in `_ready`, and tint via `modulate`. `Board` itself only holds level data; overlays only mark cells that exist on `Board` (`get_cell_source_id(cell) != -1`).
 
 ## Characters (`characters/`)
 
@@ -39,8 +41,13 @@ Configured in `hex_tileset.tres`, shared by all layers:
 - Units are instanced per level under `Board/Units`. `cell` (axial) is the source of truth; position is derived from it. In the editor, dragging a unit snaps it to the nearest hex and updates `cell`.
 - `level.gd` keeps the `cell → Character` lookup (`get_unit_at`, `move_unit`). Always move units through `move_unit`, not by setting `cell` directly, or the lookup goes stale.
 
+## Turns (`turns/`, `ui/`)
+
+- `TurnManager` only knows `round_number` and `active_team` and emits `round_started` / `turn_started`. A round = player turn + enemy turn; at round start every unit's `moves_left` is reset to `type.move_range`. It knows nothing about input or UI — controllers and HUD listen to its signals.
+- Movement rules are enforced in `Board`, not in controllers: `get_reachable(unit)` is a BFS over hex neighbors up to `moves_left` (other units and unpainted cells block), and `move_unit` refuses unreachable targets and subtracts the path cost. Multiple partial moves per turn are allowed.
+- `PlayerController`: click own unit → select + show `Reach` overlay; click reachable cell → move; right-click/other cell → deselect. Only active during the player turn.
+- `EnemyController`: placeholder that ends its turn immediately (deferred); enemy AI goes here.
+
 ## Camera / input
 
 `camera.gd` (on `Main/Camera`) moves only via the input actions `camera_left/right/up/down` (defined in `project.godot`, arrow keys) and clamps to the painted board's bounds. Mouse edge-scrolling does not move the camera directly: it emits `InputEventAction`s with a dedicated `device` id (`EDGE_DEVICE`). Don't switch this to `Input.action_press/action_release` — `action_release` also cancels a held arrow key for the same action. Edge-scrolling stays off until the first `InputEventMouseMotion`, because Godot reports the mouse at `(0, 0)` before that (would scroll to the top-left on startup).
-
-Overlay pattern: extra visual layers (hover, selection, movement range, …) are `TileMapLayer` children of `Board`. They inherit its transform, draw on top, copy `board.tile_set` in `_ready`, and tint via `modulate`. `Board` itself only holds level data; overlays only mark cells that exist on `Board` (`get_cell_source_id(cell) != -1`).
