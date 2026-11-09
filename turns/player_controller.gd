@@ -14,6 +14,8 @@ const NO_CELL := Vector2i(-99999, -99999)
 var board: Board
 
 var _active := false
+## true, solange eine Figur läuft; Eingaben und Wegvorschau ruhen dann.
+var _busy := false
 var _selected: Character
 ## Hex-Koordinate -> Wegkosten der ausgewählten Einheit
 var _reachable := {}
@@ -26,7 +28,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _selected == null:
+	if _selected == null or _busy:
 		return
 	# Jeden Frame prüfen statt nur bei Mausbewegung, da auch die Kamera
 	# das Feld unter der Maus verändert.
@@ -46,7 +48,7 @@ func _on_turn_started(team: Character.Team) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not _active or not event is InputEventMouseButton or not event.pressed:
+	if not _active or _busy or not event is InputEventMouseButton or not event.pressed:
 		return
 	if event.button_index == MOUSE_BUTTON_RIGHT:
 		_deselect()
@@ -66,23 +68,34 @@ func _on_cell_clicked(cell: Vector2i) -> void:
 		if path.is_empty():
 			_deselect()
 			return
-		var stop := _last_reachable(path)
-		if stop != _selected.cell:
-			board.move_unit(_selected, stop)
-			_select(_selected)
+		var walk := _reachable_part(path)
+		if walk.size() > 1:
+			_move_selected(walk)
 	else:
 		_deselect()
 
 
-## Letztes Feld auf `path`, das die ausgewählte Einheit mit ihrer Restreichweite erreicht.
-## Da `path` ein günstigster Weg ist, steigen die Kosten entlang des Wegs nur an.
-func _last_reachable(path: Array[Vector2i]) -> Vector2i:
-	var stop := path[0]
-	for cell in path.slice(1):
-		if not _reachable.has(cell):
-			break
-		stop = cell
-	return stop
+## Anfang von `path` bis zum letzten Feld, das die ausgewählte Einheit mit ihrer
+## Restreichweite erreicht. Da `path` ein günstigster Weg ist, steigen die Kosten nur an.
+func _reachable_part(path: Array[Vector2i]) -> Array[Vector2i]:
+	var end := 1
+	while end < path.size() and _reachable.has(path[end]):
+		end += 1
+	return path.slice(0, end)
+
+
+func _move_selected(path: Array[Vector2i]) -> void:
+	var unit := _selected
+	if not board.move_unit(unit, path):
+		return
+	_busy = true
+	board.reach_layer.show_cells([])
+	board.path_layer.show_cells([])
+	await unit.walk_finished
+	_busy = false
+	# Auswahl kann inzwischen aufgehoben sein, z. B. durch Zugende.
+	if _selected == unit:
+		_select(unit)
 
 
 func _select(unit: Character) -> void:

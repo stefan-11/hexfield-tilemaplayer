@@ -113,14 +113,23 @@ func _build_astar() -> void:
 				_astar.connect_points(id, neighbor_id)
 
 
-## Bewegt `unit` nach `to` und zieht die Wegkosten von der Restreichweite ab.
-## Gibt false zurück (und bewegt nichts), wenn `to` nicht erreichbar ist.
-func move_unit(unit: Character, to: Vector2i) -> bool:
-	var reachable := get_reachable(unit)
-	if not reachable.has(to):
+## Bewegt `unit` entlang `path` (inklusive Startfeld, z. B. aus find_path) und zieht die
+## Wegkosten von der Restreichweite ab. Der Spielzustand ist sofort aktualisiert; die Figur
+## läuft den Weg danach sichtbar ab (Character.walk_finished).
+## Gibt false zurück (und bewegt nichts), wenn der Weg ungültig oder zu teuer ist.
+func move_unit(unit: Character, path: Array[Vector2i]) -> bool:
+	if path.size() < 2 or path[0] != unit.cell:
+		return false
+	var cost := 0
+	for i in range(1, path.size()):
+		var cell := path[i]
+		if not cell in get_surrounding_cells(path[i - 1]) or get_move_cost(cell) <= 0 or _units.has(cell):
+			return false
+		cost += get_move_cost(cell)
+	if cost > unit.moves_left:
 		return false
 	_units.erase(unit.cell)
-	unit.cell = to
-	unit.moves_left -= reachable[to]
-	_units[to] = unit
+	_units[path.back()] = unit
+	unit.moves_left -= cost
+	unit.walk(path)
 	return true

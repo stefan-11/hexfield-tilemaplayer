@@ -7,6 +7,9 @@ extends Node2D
 
 enum Team { PLAYER, ENEMY }
 
+## Wird ausgelöst, wenn die Figur ihren Weg (walk) fertig abgelaufen ist.
+signal walk_finished
+
 @export var type: CharacterType:
 	set(value):
 		type = value
@@ -18,10 +21,14 @@ enum Team { PLAYER, ENEMY }
 	set(value):
 		cell = value
 		_snap_to_cell()
+## Sekunden pro Hex-Feld beim Laufen.
+@export var step_duration := 0.18
 
 var hp := 0
 ## Felder, die die Figur in dieser Runde noch laufen darf.
 var moves_left := 0
+## true, solange die Figur sichtbar einen Weg abläuft.
+var is_walking := false
 
 
 func _ready() -> void:
@@ -39,6 +46,21 @@ func _notification(what: int) -> void:
 		var board := get_board()
 		if board:
 			cell = board.local_to_map(board.to_local(global_position))
+
+
+## Setzt `cell` auf das Ende von `path` und lässt die Figur den Weg Feld für Feld ablaufen.
+## Nur für Board.move_unit gedacht, das vorher die Regeln prüft.
+func walk(path: Array[Vector2i]) -> void:
+	is_walking = true
+	cell = path.back()
+	var board := get_board()
+	var tween := create_tween()
+	for step in path.slice(1):
+		tween.tween_property(self, "global_position", board.to_global(board.map_to_local(step)), step_duration)
+	await tween.finished
+	is_walking = false
+	_snap_to_cell()
+	walk_finished.emit()
 
 
 ## Wird zu Beginn jeder Runde aufgerufen.
@@ -60,7 +82,7 @@ func get_board() -> TileMapLayer:
 
 
 func _snap_to_cell() -> void:
-	if not is_inside_tree():
+	if not is_inside_tree() or is_walking:
 		return
 	var board := get_board()
 	if board == null:
