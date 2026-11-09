@@ -3,7 +3,7 @@
 [ext_resource type="TileSet" uid="uid://icjolmgce0t8" path="res://hex_tileset.tres" id="1_tileset"]
 [ext_resource type="Script" uid="uid://bdrucby46p3ou" path="res://level.gd" id="2_646pq"]
 [ext_resource type="Script" uid="uid://dbtsogq1dt2kw" path="res://hover_highlight.gd" id="2_hover"]
-[ext_resource type="Script" path="res://highlight_layer.gd" id="3_highlight"]
+[ext_resource type="Script" uid="uid://ggs7bg6oqdg1" path="res://highlight_layer.gd" id="3_highlight"]
 
 [node name="Board" type="TileMapLayer" unique_id=1759718934]
 tile_set = ExtResource("1_tileset")
@@ -11,6 +11,10 @@ script = ExtResource("2_646pq")
 
 [node name="Reach" type="TileMapLayer" parent="." unique_id=583194027]
 script = ExtResource("3_highlight")
+
+[node name="Path" type="TileMapLayer" parent="." unique_id=252577469]
+script = ExtResource("3_highlight")
+highlight_color = Color(1, 0.9137255, 0, 0.4)
 
 [node name="Hover" type="TileMapLayer" parent="." unique_id=1908978758]
 script = ExtResource("2_hover")

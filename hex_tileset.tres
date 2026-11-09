@@ -5,11 +5,26 @@
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0bv2f"]
 texture = ExtResource("1_1kg4c")
 texture_region_size = Vector2i(128, 110)
+0:0/next_alternative_id = 5
 0:0/0 = 0
+0:0/0/custom_data_0 = 1
+0:0/1 = 1
+0:0/1/modulate = Color(0.60361177, 1, 0.5730653, 1)
+0:0/1/custom_data_0 = 1
+0:0/2 = 2
+0:0/2/modulate = Color(0.38928655, 0.38928664, 0.38928658, 1)
+0:0/2/custom_data_0 = 3
+0:0/3 = 3
+0:0/3/modulate = Color(0.2566691, 0.47665066, 1, 1)
+0:0/4 = 4
+0:0/4/modulate = Color(1.8650666e-06, 0.39788622, 0, 1)
+0:0/4/custom_data_0 = 2
 
 [resource]
 tile_shape = 3
 tile_layout = 3
 tile_offset_axis = 1
 tile_size = Vector2i(128, 110)
+custom_data_layer_0/name = "move_cost"
+custom_data_layer_0/type = 2
 sources/0 = SubResource("TileSetAtlasSource_0bv2f")

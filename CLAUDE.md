@@ -25,10 +25,11 @@ Configured in `hex_tileset.tres`, shared by all layers:
 - `tile_layout = Stairs Down` → map coordinates are **axial `(q, r)`** = `Vector2i(x, y)`. +q moves one column right and half a hex down; +r moves straight down. This matches Red Blob Games' flat-top axial system.
 - Neighbors of `(q, r)`: `(q±1, r)`, `(q, r±1)`, `(q+1, r-1)`, `(q-1, r+1)`; distance = `(|dq| + |dr| + |dq+dr|) / 2`. `get_surrounding_cells()` already respects this layout.
 - Changing `tile_layout` remaps all painted cells — don't change it.
+- Terrain: custom data layer `move_cost` (int) = cost to **enter** a cell. `<= 0` means impassable, and new tiles default to 0, so every new tile needs a value. Read it only via `Board.get_move_cost(cell)` (unpainted cells → 0).
 
 ## Scene structure
 
-- `level_base.tscn`: `Board (TileMapLayer, level.gd = class_name Board, hex_tileset.tres)` → `Reach (highlight_layer.gd)`, `Hover (hover_highlight.gd)`, `Units (Node2D)`. Contains no painted cells. Child order = draw order.
+- `level_base.tscn`: `Board (TileMapLayer, level.gd = class_name Board, hex_tileset.tres)` → `Reach (highlight_layer.gd)`, `Path (highlight_layer.gd)`, `Hover (hover_highlight.gd)`, `Units (Node2D)`. Contains no painted cells. Child order = draw order.
 - `level_XX.tscn`: inherited scenes of `level_base.tscn`; they only add `tile_map_data` (the painted level), units, and per-level exports of `level.gd` (e.g. `start_cell`, axial coords the camera starts on). Shared structure/overlays belong in `level_base.tscn`, never in individual levels.
 - `main.tscn` + `main.gd`: `Main (Node2D)` holds `Camera`, `TurnManager`, `PlayerController`, `EnemyController`, `HUD` (`ui/hud.tscn`). At runtime it instantiates the `level_scene` export, hands the `Board` to camera/turn manager/player controller, then calls `TurnManager.start()`.
 
@@ -44,8 +45,9 @@ Overlay pattern: extra visual layers (hover, selection, movement range, …) are
 ## Turns (`turns/`, `ui/`)
 
 - `TurnManager` only knows `round_number` and `active_team` and emits `round_started` / `turn_started`. A round = player turn + enemy turn; at round start every unit's `moves_left` is reset to `type.move_range`. It knows nothing about input or UI — controllers and HUD listen to its signals.
-- Movement rules are enforced in `Board`, not in controllers: `get_reachable(unit)` is a BFS over hex neighbors up to `moves_left` (other units and unpainted cells block), and `move_unit` refuses unreachable targets and subtracts the path cost. Multiple partial moves per turn are allowed.
-- `PlayerController`: click own unit → select + show `Reach` overlay; click reachable cell → move; right-click/other cell → deselect. Only active during the player turn.
+- Movement rules are enforced in `Board`, not in controllers: `get_reachable(unit)` is a Dijkstra over hex neighbors using `get_move_cost`, up to `moves_left` (other units and impassable cells block), and `move_unit` refuses unreachable targets and subtracts the path cost. Multiple partial moves per turn are allowed.
+- `Board.find_path(from, to)` uses `HexAStar` (`hex_astar.gd`, `AStar2D` subclass: point position = axial cell, `weight_scale` = `move_cost`, hex-distance heuristic). Range-independent; returns cells incl. start and goal, empty if unreachable. Units are disabled as points only for the duration of each call. The graph is built once in `Board._ready()` — if tiles are changed at runtime, call `_build_astar()` again.
+- `PlayerController`: click own unit → select + show `Reach` overlay; hovering any cell shows the full `find_path` route on the `Path` overlay (also beyond range); click any cell → move along that path, as far as `moves_left` allows (stops at the last cell in `get_reachable`); right-click or a cell without path → deselect. Only active during the player turn.
 - `EnemyController`: placeholder that ends its turn immediately (deferred); enemy AI goes here.
 
 ## Camera / input
