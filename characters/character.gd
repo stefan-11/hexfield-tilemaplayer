@@ -77,6 +77,8 @@ func reset_for_round() -> void:
 
 func take_damage(amount: int) -> void:
 	hp = maxi(hp - amount, 0)
+	if amount > 0:
+		DamageNumber.spawn(get_board(), global_position, amount)
 
 
 func _get_configuration_warnings() -> PackedStringArray:

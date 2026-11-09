@@ -44,7 +44,7 @@ static func describe(result: Dictionary) -> String:
 	for color in result.rolls:
 		var faces: Array[int] = result.rolls[color]
 		var hits := faces.filter(func(face): return face <= HIT_SIDES[color]).size()
-		lines.append("  %s (Treffer 1-%d): %s -> %d Treffer" % [NAMES[color], HIT_SIDES[color], faces, hits])
+		lines.append("  %d %s (Treffer 1-%d): %s -> %d Treffer" % [faces.size(), NAMES[color], HIT_SIDES[color], faces, hits])
 	if lines.is_empty():
 		lines.append("  keine Angriffswürfel")
 	return "\n".join(lines)

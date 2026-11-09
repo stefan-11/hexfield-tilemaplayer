@@ -56,6 +56,7 @@ Overlay pattern: extra visual layers (hover, selection, movement range, …) are
 - `Dice` (`combat/dice.gd`): all dice are d6; `DieColor` YELLOW/BLUE/GREEN/BLACK/RED hit on 1–2/1–3/1–4/1–5/1–6. `Dice.roll(counts)` returns `{hits, rolls}`; `Dice.describe()` formats it for the log.
 - Dice counts: `CharacterType` holds start values (`dice_yellow` … `dice_red`); each `Character` copies them into its own `attack_dice` (`DieColor -> count`) in `_ready`. Upgrades change `attack_dice` on the instance — never mutate the shared `CharacterType` resource at runtime.
 - Rules live in `Board`: `can_attack` (other team, `HexAStar.distance <= type.attack_range`, ignores obstacles/line of sight, one attack per unit per round via `has_attacked`) and `attack` (rolls, applies hits via `take_damage`, prints the log, removes units at 0 HP from lookup and tree). `reset_for_round()` resets `moves_left` and `has_attacked`.
+- `Character.take_damage` spawns a `DamageNumber` (`combat/damage_number.gd`, a `Label`) as a child of the **Board**, not the unit, so it outlives units removed at 0 HP. It must keep `mouse_filter = IGNORE` or it swallows clicks on the board.
 - `PlayerController`: with a unit selected, clicking an enemy that `can_attack` allows → attack.
 
 ## Camera / input
