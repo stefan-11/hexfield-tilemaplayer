@@ -44,12 +44,19 @@ Overlay pattern: extra visual layers (hover, selection, movement range, …) are
 
 ## Turns (`turns/`, `ui/`)
 
-- `TurnManager` only knows `round_number` and `active_team` and emits `round_started` / `turn_started`. A round = player turn + enemy turn; at round start every unit's `moves_left` is reset to `type.move_range`. It knows nothing about input or UI — controllers and HUD listen to its signals.
+- `TurnManager` only knows `round_number` and `active_team` and emits `round_started` / `turn_started`. A round = player turn + enemy turn; at round start every unit's `reset_for_round()` is called (`moves_left`, `has_attacked`). It knows nothing about input or UI — controllers and HUD listen to its signals.
 - Movement rules are enforced in `Board`, not in controllers: `get_reachable(unit)` is a Dijkstra over hex neighbors using `get_move_cost`, up to `moves_left` (other units and impassable cells block), and `move_unit(unit, path)` takes the concrete path (incl. start cell, e.g. from `find_path`), rejects it if steps aren't adjacent, blocked, impassable or cost more than `moves_left`, and subtracts the path cost. Multiple partial moves per turn are allowed.
 - Logic vs. presentation: `move_unit` updates the lookup, `moves_left` and `cell` immediately, then calls `Character.walk(path)`, which tweens along the path (`step_duration` per hex) and emits `walk_finished`. `_snap_to_cell` is suppressed while `is_walking`. Callers that need to wait (controllers, later AI) `await unit.walk_finished`; `PlayerController` blocks input while walking.
 - `Board.find_path(from, to)` uses `HexAStar` (`hex_astar.gd`, `AStar2D` subclass: point position = axial cell, `weight_scale` = `move_cost`, hex-distance heuristic). Range-independent; returns cells incl. start and goal, empty if unreachable. Units are disabled as points only for the duration of each call. The graph is built once in `Board._ready()` — if tiles are changed at runtime, call `_build_astar()` again.
 - `PlayerController`: click own unit → select + show `Reach` overlay; hovering any cell shows the full `find_path` route on the `Path` overlay (also beyond range); click any cell → move along that path, as far as `moves_left` allows (stops at the last cell in `get_reachable`); right-click or a cell without path → deselect. Only active during the player turn.
 - `EnemyController`: placeholder that ends its turn immediately (deferred); enemy AI goes here.
+
+## Combat (`combat/`)
+
+- `Dice` (`combat/dice.gd`): all dice are d6; `DieColor` YELLOW/BLUE/GREEN/BLACK/RED hit on 1–2/1–3/1–4/1–5/1–6. `Dice.roll(counts)` returns `{hits, rolls}`; `Dice.describe()` formats it for the log.
+- Dice counts: `CharacterType` holds start values (`dice_yellow` … `dice_red`); each `Character` copies them into its own `attack_dice` (`DieColor -> count`) in `_ready`. Upgrades change `attack_dice` on the instance — never mutate the shared `CharacterType` resource at runtime.
+- Rules live in `Board`: `can_attack` (other team, `HexAStar.distance <= type.attack_range`, ignores obstacles/line of sight, one attack per unit per round via `has_attacked`) and `attack` (rolls, applies hits via `take_damage`, prints the log, removes units at 0 HP from lookup and tree). `reset_for_round()` resets `moves_left` and `has_attacked`.
+- `PlayerController`: with a unit selected, clicking an enemy that `can_attack` allows → attack.
 
 ## Camera / input
 

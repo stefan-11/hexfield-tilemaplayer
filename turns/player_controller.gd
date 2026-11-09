@@ -4,6 +4,7 @@ extends Node
 ## Linksklick auf eine eigene Einheit wählt sie aus und zeigt ihre erreichbaren Felder,
 ## Linksklick auf ein Feld bewegt sie entlang des angezeigten Wegs dorthin, bei Zielen
 ## außerhalb der Reichweite so weit, wie die Restreichweite reicht.
+## Linksklick auf einen Gegner in Angriffsreichweite greift ihn an (einmal pro Runde).
 ## Steht die Maus über einem Feld, wird der Weg dorthin angezeigt (auch außerhalb der Reichweite).
 ## Rechtsklick oder Klick auf ein Feld ohne Weg hebt die Auswahl auf.
 
@@ -63,6 +64,9 @@ func _on_cell_clicked(cell: Vector2i) -> void:
 	var unit := board.get_unit_at(cell)
 	if unit and unit.team == Character.Team.PLAYER:
 		_select(unit)
+	elif unit and _selected and board.can_attack(_selected, unit):
+		board.attack(_selected, unit)
+		_select(_selected)
 	elif _selected:
 		var path := board.find_path(_selected.cell, cell)
 		if path.is_empty():

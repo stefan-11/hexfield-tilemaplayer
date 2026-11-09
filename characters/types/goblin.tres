@@ -10,3 +10,5 @@ texture = ExtResource("2_texture")
 tint = Color(1, 0.35, 0.35, 1)
 max_hp = 6
 move_range = 4
+dice_yellow = 2
+dice_blue = 1

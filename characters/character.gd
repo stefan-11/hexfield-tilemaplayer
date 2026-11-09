@@ -25,8 +25,13 @@ signal walk_finished
 @export var step_duration := 0.18
 
 var hp := 0
+## Aktuelle Angriffswürfel (Dice.DieColor -> Anzahl). Startwerte kommen vom Typ;
+## Verbesserungen ändern nur diese Figur, z. B. attack_dice[Dice.DieColor.RED] += 1.
+var attack_dice := {}
 ## Felder, die die Figur in dieser Runde noch laufen darf.
 var moves_left := 0
+## Ob die Figur in dieser Runde schon angegriffen hat.
+var has_attacked := false
 ## true, solange die Figur sichtbar einen Weg abläuft.
 var is_walking := false
 
@@ -38,6 +43,7 @@ func _ready() -> void:
 		set_notify_transform(true)
 	elif type:
 		hp = type.max_hp
+		attack_dice = type.get_attack_dice()
 
 
 func _notification(what: int) -> void:
@@ -64,8 +70,13 @@ func walk(path: Array[Vector2i]) -> void:
 
 
 ## Wird zu Beginn jeder Runde aufgerufen.
-func reset_moves() -> void:
+func reset_for_round() -> void:
 	moves_left = type.move_range if type else 0
+	has_attacked = false
+
+
+func take_damage(amount: int) -> void:
+	hp = maxi(hp - amount, 0)
 
 
 func _get_configuration_warnings() -> PackedStringArray:

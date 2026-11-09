@@ -97,6 +97,35 @@ func find_path(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 	return path
 
 
+## Ob `attacker` `target` jetzt angreifen darf: gegnerisches Team, in Angriffsreichweite
+## (Hex-Distanz, Hindernisse spielen keine Rolle) und in dieser Runde noch nicht angegriffen.
+func can_attack(attacker: Character, target: Character) -> bool:
+	return attacker.team != target.team \
+			and not attacker.has_attacked \
+			and HexAStar.distance(attacker.cell, target.cell) <= attacker.type.attack_range
+
+
+## Führt einen Angriff aus: wirft alle Angriffswürfel von `attacker` und zieht die Treffer
+## von den HP von `target` ab. Besiegte Figuren (0 HP) werden vom Brett entfernt.
+## Gibt das Würfelergebnis zurück (siehe Dice.roll), oder {} wenn der Angriff nicht erlaubt ist.
+func attack(attacker: Character, target: Character) -> Dictionary:
+	if not can_attack(attacker, target):
+		return {}
+	attacker.has_attacked = true
+	var result := Dice.roll(attacker.attack_dice)
+	var hp_before := target.hp
+	target.take_damage(result.hits)
+	print("%s greift %s an (Distanz %d):\n%s\n  = %d Treffer, %s: %d -> %d HP" % [
+		attacker.type.display_name, target.type.display_name,
+		HexAStar.distance(attacker.cell, target.cell), Dice.describe(result),
+		result.hits, target.type.display_name, hp_before, target.hp])
+	if target.hp <= 0:
+		print("  %s ist besiegt." % target.type.display_name)
+		_units.erase(target.cell)
+		target.queue_free()
+	return result
+
+
 func _build_astar() -> void:
 	_astar.clear()
 	for cell in get_used_cells():

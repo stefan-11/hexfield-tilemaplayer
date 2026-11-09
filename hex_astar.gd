@@ -15,7 +15,12 @@ func _compute_cost(_from_id: int, _to_id: int) -> float:
 	return 1.0
 
 
+## Anzahl Hex-Schritte zwischen zwei axialen Koordinaten, ohne Hindernisse.
+static func distance(a: Vector2i, b: Vector2i) -> int:
+	var d := a - b
+	return (absi(d.x) + absi(d.y) + absi(d.x + d.y)) / 2
+
+
 func _estimate_cost(from_id: int, end_id: int) -> float:
 	# Hex-Distanz; unterschätzt nie, da jedes Feld mindestens 1 kostet.
-	var d := Vector2i(get_point_position(from_id) - get_point_position(end_id))
-	return (absi(d.x) + absi(d.y) + absi(d.x + d.y)) / 2.0
+	return distance(Vector2i(get_point_position(from_id)), Vector2i(get_point_position(end_id)))

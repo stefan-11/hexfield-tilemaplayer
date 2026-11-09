@@ -9,3 +9,5 @@ display_name = "Ritter"
 texture = ExtResource("2_texture")
 max_hp = 12
 move_range = 3
+dice_green = 2
+dice_black = 1

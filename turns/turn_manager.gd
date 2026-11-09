@@ -26,7 +26,7 @@ func end_turn() -> void:
 func _start_round() -> void:
 	round_number += 1
 	for unit in board.get_units():
-		unit.reset_moves()
+		unit.reset_for_round()
 	round_started.emit(round_number)
 	_start_turn(Character.Team.PLAYER)
 
