@@ -38,7 +38,7 @@ Overlay pattern: extra visual layers (hover, selection, movement range, …) are
 ## Characters (`characters/`)
 
 - One scene for all units: `character.tscn` + `character.gd` (`class_name Character`, `@tool`). Player vs. enemy is the `team` export, not a subclass; control (input vs. AI) belongs in a separate turn/controller system.
-- Stats and graphics live in `CharacterType` resources (`character_type.gd`), one `.tres` per type in `characters/types/`. New unit types = new `.tres`, no new scene.
+- Stats and graphics live in `CharacterType` resources (`character_type.gd`: `max_hp`, `move_range`, `attack_range` = hex distance for attacks, …), one `.tres` per type in `characters/types/`. New unit types = new `.tres`, no new scene.
 - Units are instanced per level under `Board/Units`. `cell` (axial) is the source of truth; position is derived from it. In the editor, dragging a unit snaps it to the nearest hex and updates `cell`.
 - `level.gd` keeps the `cell → Character` lookup (`get_unit_at`, `move_unit`). Always move units through `move_unit`, not by setting `cell` directly, or the lookup goes stale.
 
